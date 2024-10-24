@@ -284,9 +284,8 @@
 
 // export default App;
 
-
-import React, { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
+import React, { useState, useEffect, useRef } from "react"; // Mengimpor React dan beberapa hook yang akan digunakan.
+import { Bar } from "react-chartjs-2"; // Mengimpor komponen Bar dari react-chartjs-2 untuk grafik batang.
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -295,9 +294,8 @@ import {
   Title,
   Tooltip,
   Legend,
-} from "chart.js";
+} from "chart.js"; // Mengimpor komponen dari Chart.js untuk mempersiapkan grafik.
 
-// Registrasi komponen-komponen Chart.js yang diperlukan untuk membuat grafik
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -305,107 +303,115 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
-);
+); // Mendaftarkan elemen grafik yang akan digunakan.
 
 function App() {
-  // Data IPK untuk setiap semester
+  // Inisialisasi data IPK per semester.
   const ipkPerSemester = [3.2, 3.4, 3.1, 3.6, 2.9, 3.5, 3.7, 3.8];
-
-  // State untuk menyimpan data form yang dimasukkan oleh pengguna
+  
+  // Menggunakan useState untuk mengelola state dari form.
   const [formData, setFormData] = useState({
-    nama: "", // Nama pengguna
-    email: "", // Email pengguna
-    noHp: "", // Nomor HP pengguna
-    semester: "", // Semester yang dipilih
-    ipk: "", // IPK yang akan diisi berdasarkan semester
-    pilihanBeasiswa: "", // Pilihan beasiswa
-    berkas: null, // Berkas PDF yang diupload
+    nama: "",
+    email: "",
+    noHp: "",
+    semester: "",
+    ipk: "",
+    pilihanBeasiswa: "",
+    berkas: null,
   });
 
-  // State untuk menyimpan status pendaftaran
+  // State untuk menyimpan status pendaftaran.
   const [status, setStatus] = useState("");
-
-  // State untuk mengatur apakah pilihan beasiswa aktif atau tidak
+  
+  // State untuk mengatur apakah pilihan beasiswa aktif atau tidak.
   const [isBeasiswaActive, setIsBeasiswaActive] = useState(false);
-
-  // State untuk menyimpan tab aktif di navigasi
+  
+  // State untuk mengatur tab yang aktif (1, 2, atau 3).
   const [activeTab, setActiveTab] = useState(1);
+  
+  // Referensi untuk elemen pilihan beasiswa.
+  const beasiswaRef = useRef(null);
 
-  // Fungsi ini dijalankan setiap kali ada perubahan pada input
+  // Fungsi untuk menangani perubahan input.
   function handleChange(e) {
-    const { name, value } = e.target; // Mengambil nama dan nilai dari input
+    const { name, value } = e.target; // Mendapatkan nama dan nilai dari input.
 
+    // Jika input adalah semester, setel nilai IPK sesuai dengan semester yang dipilih.
     if (name === "semester") {
-      // Jika input yang diubah adalah semester, IPK otomatis disesuaikan
       setFormData({
         ...formData,
         semester: value,
-        ipk: ipkPerSemester[value - 1] || "", // Pilih IPK berdasarkan semester
+        ipk: ipkPerSemester[value - 1] || "",
       });
     } else {
-      // Jika input lain yang diubah, perbarui nilainya saja tanpa mengubah yang lain
+      // Untuk input lainnya, setel nilai sesuai dengan input.
       setFormData({
-        ...formData, // Salin data formData yang sudah ada
-        [name]: value, // Perbarui data sesuai dengan input yang diubah
+        ...formData,
+        [name]: value,
       });
     }
   }
 
-  // Fungsi ini dijalankan ketika pengguna mengupload file
+  // Fungsi untuk menangani perubahan file yang diunggah.
   function handleFileChange(e) {
-    const file = e.target.files[0]; // Ambil file yang diupload
-    // Cek apakah file yang diupload adalah PDF
+    const file = e.target.files[0]; // Mengambil file pertama yang diunggah.
+    
+    // Memeriksa apakah file yang diunggah adalah PDF.
     if (file && file.type !== "application/pdf") {
-      alert("Hanya file PDF yang diperbolehkan"); // Jika bukan PDF, beri peringatan
-      setFormData({ ...formData, berkas: null }); // Set berkas menjadi null
-      e.target.value = null; // Reset input file
+      alert("Hanya file PDF yang diperbolehkan");
+      setFormData({ ...formData, berkas: null }); // Reset berkas jika tidak valid.
+      e.target.value = null; // Menghapus nilai input file.
     } else {
-      setFormData({ ...formData, berkas: file }); // Simpan file jika valid
+      // Setel berkas jika valid.
+      setFormData({ ...formData, berkas: file });
     }
   }
 
-  // Fungsi untuk submit form
+  // Fungsi untuk menangani pengiriman formulir.
   function handleSubmit(e) {
-    e.preventDefault(); // Mencegah reload halaman ketika submit
+    e.preventDefault(); // Mencegah reload halaman saat formulir dikirim.
 
-    // Validasi apakah email yang dimasukkan valid
+    // Validasi email.
     if (!validateEmail(formData.email)) {
       alert("Email tidak valid");
       return;
     }
 
-    // Validasi apakah nomor HP adalah angka
+    // Validasi nomor HP.
     if (isNaN(formData.noHp)) {
       alert("Nomor HP harus berupa angka");
       return;
     }
 
-    // Validasi apakah IPK memenuhi syarat
+    // Validasi IPK.
     if (formData.ipk < 3) {
       alert("IPK harus di atas 3 untuk mendaftar beasiswa");
       return;
     }
 
-    // Jika semua validasi lolos, set status pendaftaran
+    // Set status pendaftaran dan notifikasi.
     setStatus("Belum diverifikasi");
     alert("Pendaftaran berhasil! Status: Belum diverifikasi");
-
-    // Pindah ke tab hasil
-    setActiveTab(3);
+    setActiveTab(3); // Pindah ke tab hasil setelah pendaftaran.
   }
 
-  // Fungsi untuk validasi email menggunakan regex (pola karakter)
+  // Fungsi untuk memvalidasi format email.
   function validateEmail(email) {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email); // Cek apakah email cocok dengan pola
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regular expression untuk memvalidasi email.
+    return regex.test(email); // Mengembalikan true atau false.
   }
 
-  // Fungsi ini dijalankan setiap kali IPK berubah untuk mengaktifkan atau menonaktifkan beasiswa
+  // useEffect untuk memantau perubahan IPK.
   useEffect(() => {
-    setIsBeasiswaActive(formData.ipk >= 3); // Aktifkan beasiswa jika IPK >= 3
-  }, [formData.ipk]); // Fungsi ini hanya berjalan ketika nilai IPK berubah
+    setIsBeasiswaActive(formData.ipk >= 3); // Aktifkan pilihan beasiswa jika IPK >= 3.
+    
+    // Pindahkan fokus ke pilihan beasiswa jika IPK >= 3.
+    if (formData.ipk >= 3 && beasiswaRef.current) {
+      beasiswaRef.current.focus();
+    }
+  }, [formData.ipk]); // Menjalankan efek ini setiap kali formData.ipk berubah.
 
-  // Data untuk grafik IPK
+  // Data untuk grafik.
   const chartData = {
     labels: [
       "Semester 1",
@@ -419,22 +425,22 @@ function App() {
     ],
     datasets: [
       {
-        label: "IPK per Semester", // Label grafik
-        data: ipkPerSemester, // Data untuk grafik
-        backgroundColor: "rgba(75, 192, 192, 0.6)", // Warna batang grafik
+        label: "IPK per Semester",
+        data: ipkPerSemester,
+        backgroundColor: "rgba(75, 192, 192, 0.6)", // Warna untuk grafik.
       },
     ],
   };
 
   return (
     <div className="container mx-auto p-4">
-      {/* Bagian untuk navigasi tab */}
       <nav className="flex space-x-4 mb-6">
+        {/* Navigasi untuk memilih tab */}
         <button
           className={`px-4 py-2 ${
             activeTab === 1 ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
-          onClick={() => setActiveTab(1)} // Pindah ke tab persyaratan
+          onClick={() => setActiveTab(1)} // Pindah ke tab persyaratan beasiswa.
         >
           Persyaratan Beasiswa
         </button>
@@ -442,7 +448,7 @@ function App() {
           className={`px-4 py-2 ${
             activeTab === 2 ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
-          onClick={() => setActiveTab(2)} // Pindah ke tab formulir
+          onClick={() => setActiveTab(2)} // Pindah ke tab formulir.
         >
           Formulir
         </button>
@@ -450,13 +456,13 @@ function App() {
           className={`px-4 py-2 ${
             activeTab === 3 ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
-          onClick={() => setActiveTab(3)} // Pindah ke tab hasil
+          onClick={() => setActiveTab(3)} // Pindah ke tab hasil.
         >
           Hasil
         </button>
       </nav>
 
-      {/* Tab untuk Persyaratan Beasiswa */}
+      {/* Konten untuk tab persyaratan beasiswa */}
       {activeTab === 1 && (
         <div>
           <h1 className="text-2xl font-bold">Persyaratan Beasiswa</h1>
@@ -465,7 +471,7 @@ function App() {
         </div>
       )}
 
-      {/* Tab untuk Formulir Pendaftaran */}
+      {/* Konten untuk tab formulir */}
       {activeTab === 2 && (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -474,7 +480,7 @@ function App() {
               type="text"
               name="nama"
               value={formData.nama}
-              onChange={handleChange} // Setiap perubahan di input akan diproses
+              onChange={handleChange}
               className="border p-2 w-full"
               required
             />
@@ -506,7 +512,7 @@ function App() {
             <select
               name="semester"
               value={formData.semester}
-              onChange={handleChange} // Setiap kali semester diubah, IPK juga diubah
+              onChange={handleChange}
               className="border p-2 w-full"
               required
             >
@@ -526,7 +532,7 @@ function App() {
             <input
               type="text"
               name="ipk"
-              value={formData.ipk} // IPK otomatis diisi berdasarkan semester
+              value={formData.ipk}
               readOnly
               className="border p-2 w-full bg-gray-200"
             />
@@ -537,7 +543,8 @@ function App() {
               name="pilihanBeasiswa"
               value={formData.pilihanBeasiswa}
               onChange={handleChange}
-              disabled={!isBeasiswaActive} // Pilihan beasiswa nonaktif jika IPK < 3
+              disabled={!isBeasiswaActive} // Menonaktifkan pilihan jika tidak memenuhi syarat.
+              ref={beasiswaRef} // Menggunakan referensi untuk fokus.
               className="border p-2 w-full"
               required
             >
@@ -547,12 +554,11 @@ function App() {
             </select>
           </div>
           <div>
-            <label>Upload Berkas (PDF):</label>
+            <label>Upload Berkas:</label>
             <input
               type="file"
-              name="berkas"
-              onChange={handleFileChange} // Fungsi untuk menangani file upload
-              disabled={!isBeasiswaActive} // Nonaktif jika IPK < 3
+              accept="application/pdf"
+              onChange={handleFileChange}
               className="border p-2 w-full"
               required
             />
@@ -597,4 +603,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; // Mengekspor komponen App sebagai default export.
